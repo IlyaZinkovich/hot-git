@@ -77,16 +77,6 @@ public class HotGit {
         duration.toHours());
   }
 
-  private static List<Long> durations(List<Instant> times) {
-    times.sort(Instant::compareTo);
-    return Seq.seq(times).sliding(2).map(seq -> {
-      final Instant[] changeTimes = seq.toArray(Instant[]::new);
-      Instant first = changeTimes[0];
-      Instant second = changeTimes[1];
-      return Duration.between(first, second).toHours();
-    }).collect(toList());
-  }
-
   private static List<DiffEntry> diff(Repository repository, Git git, RevCommit commit) {
     AbstractTreeIterator newTreeIterator = treeIterator(repository, commit);
     AbstractTreeIterator oldTreeIterator = parentTreeIterator(repository, commit);
