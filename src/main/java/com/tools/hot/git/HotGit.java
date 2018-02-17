@@ -1,6 +1,7 @@
 package com.tools.hot.git;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
@@ -14,6 +15,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -29,33 +31,50 @@ public class HotGit {
 
   public static void main(String[] args) throws IOException, GitAPIException {
     FileRepositoryBuilder builder = new FileRepositoryBuilder();
-    Repository repository = builder.setGitDir(new File("../sonarlint-intellij/.git"))
+    final String sonarlint = "../sonarlint-intellij/.git";
+    Repository repository = builder.setGitDir(new File(sonarlint))
         .readEnvironment()
         .findGitDir()
         .build();
     final Git git = new Git(repository);
     final boolean notParallel = false;
-    final Map<String, List<Instant>> statistics = stream(allCommits(repository).spliterator(),
+    final Map<String, List<Instant>> fileChangeDates = stream(allCommits(repository).spliterator(),
         notParallel)
         .flatMap(commit -> diff(repository, git, commit).stream().map(DiffEntry::getNewPath)
             .distinct()
             .collect(toMap(path -> path, path -> commit.getAuthorIdent().getWhen().toInstant()))
             .entrySet().stream())
         .collect(groupingBy(Entry::getKey, mapping(Entry::getValue, toList())));
-    final Map<String, List<Long>> filesWithDurationsBetweenChangesInHours = statistics.entrySet()
+    final List<RelativeChange> relativeChanges = fileChangeDates.entrySet()
         .stream()
-        .collect(toMap(entry -> entry.getKey(), entry -> durations(entry.getValue())));
-    final Map<String, Long> hotFiles = filesWithDurationsBetweenChangesInHours.entrySet()
-        .stream()
-        .collect(toMap(entry -> entry.getKey(),
-            entry -> entry.getValue().stream().filter(duration -> duration < 48L).count()));
+        .flatMap(HotGit::fileChangeDatesToRelativeChanges)
+        .collect(toList());
+    final Duration duration = Duration.ofDays(2);
+    final Map<String, Long> hotFiles = relativeChanges.stream()
+        .filter(relativeChange -> relativeChange.within(duration))
+        .collect(groupingBy(RelativeChange::file, counting()));
     hotFiles.entrySet().stream()
         .filter(entry -> entry.getValue() > 0)
-        .forEach(entry -> System.out.println(outputFormat(entry)));
+        .forEach(entry -> System.out.println(outputFormat(entry, duration)));
   }
 
-  private static String outputFormat(Entry<String, Long> entry) {
-    return format("%s: %d changes within 2 days", entry.getKey(), entry.getValue());
+  private static Stream<? extends RelativeChange> fileChangeDatesToRelativeChanges(
+      Entry<String, List<Instant>> entry) {
+    final String file = entry.getKey();
+    final List<Instant> changeDates = entry.getValue();
+    changeDates.sort(Instant::compareTo);
+    return Seq.seq(changeDates).sliding(2).map(seq -> {
+      final Instant[] changeTimes = seq.toArray(Instant[]::new);
+      Instant first = changeTimes[0];
+      Instant second = changeTimes[1];
+      final Duration duration = Duration.between(first, second);
+      return new RelativeChange(file, second, duration);
+    });
+  }
+
+  private static String outputFormat(Entry<String, Long> entry, Duration duration) {
+    return format("%s: %d changes within %d hours", entry.getKey(), entry.getValue(),
+        duration.toHours());
   }
 
   private static List<Long> durations(List<Instant> times) {
