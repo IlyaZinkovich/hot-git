@@ -27,12 +27,11 @@ import javafx.stage.Stage;
 public class HotGitUI extends Application {
 
   private static final String TITLE = "Hot Git";
-  private static final int WIDTH = 500;
-  private static final int HEIGHT = 500;
   private static final String FILE_MENU_TITLE = "File";
   private static final String CHOOSE_REPO_FILE_MENU_ITEM_TITLE = "Choose repo...";
   private static final String FILE_NAME_COLUMN_TITLE = "File name";
   private static final String CONCURRENT_CHANGES_COUNT_COLUMN_NAME = "Concurrent changes count";
+  private static final boolean FULL_SCREEN = true;
 
   private final DirectoryChooser directoryChooser;
   private final RepoAnalysisService repoAnalysisService;
@@ -49,16 +48,34 @@ public class HotGitUI extends Application {
   public void start(Stage stage) {
     stage.setTitle(TITLE);
     final VBox root = new VBox();
-    final Scene scene = new Scene(root, WIDTH, HEIGHT);
+    final Scene scene = new Scene(root);
+    final TableView<ConcurrentChangesPerFileData> tableView = setupTableView();
+    final MenuBar menuBar = setupMenuBar(stage, tableView);
+    tableView.setVisible(false);
+    root.getChildren().addAll(menuBar, tableView);
+    stage.setScene(scene);
+    stage.show();
+    stage.setFullScreen(FULL_SCREEN);
+  }
+
+  private TableView<ConcurrentChangesPerFileData> setupTableView() {
     final TableView<ConcurrentChangesPerFileData> tableView = new TableView<>();
     final TableColumn<ConcurrentChangesPerFileData, String> fileNameColumn =
         new TableColumn<>(FILE_NAME_COLUMN_TITLE);
     fileNameColumn.setCellValueFactory(new PropertyValueFactory<>("fileName"));
+    fileNameColumn.prefWidthProperty()
+        .bind(tableView.widthProperty().multiply(0.50));
     final TableColumn<ConcurrentChangesPerFileData, Long> concurrentChangesCountColumn =
         new TableColumn<>(CONCURRENT_CHANGES_COUNT_COLUMN_NAME);
     concurrentChangesCountColumn
         .setCellValueFactory(new PropertyValueFactory<>("concurrentChangesCount"));
+    concurrentChangesCountColumn.prefWidthProperty()
+        .bind(tableView.widthProperty().multiply(0.50));
     tableView.getColumns().addAll(fileNameColumn, concurrentChangesCountColumn);
+    return tableView;
+  }
+
+  private MenuBar setupMenuBar(Stage stage, TableView<ConcurrentChangesPerFileData> tableView) {
     final MenuBar menuBar = new MenuBar();
     final Menu fileMenu = new Menu(FILE_MENU_TITLE);
     final MenuItem chooseRepo = new MenuItem(CHOOSE_REPO_FILE_MENU_ITEM_TITLE);
@@ -73,13 +90,12 @@ public class HotGitUI extends Application {
             .map(entry -> new ConcurrentChangesPerFileData(entry.getKey(), entry.getValue()))
             .collect(Collectors.toList());
         tableView.setItems(observableArrayList(data));
+        tableView.setVisible(true);
       }
     });
     fileMenu.getItems().addAll(chooseRepo);
     menuBar.getMenus().addAll(fileMenu);
-    root.getChildren().addAll(menuBar, tableView);
-    stage.setScene(scene);
-    stage.show();
+    return menuBar;
   }
 
   private String repoMetadataPath(File file) {
