@@ -1,10 +1,8 @@
 package com.tools.hot.git.parser;
 
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toList;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -23,14 +21,15 @@ public final class DiffWithParent {
     this.git = git;
   }
 
-  public Map<String, Instant> fileChangeDates() {
-    return toList().stream()
+  public List<Change> changes() {
+    return diffEntries().stream()
         .map(DiffEntry::getNewPath)
         .distinct()
-        .collect(toMap(path -> path, path -> commit.getAuthorIdent().getWhen().toInstant()));
+        .map(file -> new Change(file, commit.getAuthorIdent().getWhen().toInstant()))
+        .collect(toList());
   }
 
-  private List<DiffEntry> toList() {
+  private List<DiffEntry> diffEntries() {
     try {
       return git.diff()
           .setNewTree(factory.commitTreeParser(commit))
