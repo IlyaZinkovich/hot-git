@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectReader;
 
@@ -17,7 +18,7 @@ public class RelativeChanges {
     this.git = git;
   }
 
-  public List<RelativeChange> list() {
+  public Stream<RelativeChange> stream() {
     final CommitTreeParserFactory parserFactory = new CommitTreeParserFactory(objectReader);
     final List<Change> changes = new Commits(git).stream()
         .map(commit -> new DiffWithParent(commit, parserFactory, git))
@@ -26,7 +27,6 @@ public class RelativeChanges {
         .collect(toList());
     return new FileChangesGroup(changes).stream()
         .map(FileChanges::relativeChanges)
-        .flatMap(Collection::stream)
-        .collect(toList());
+        .flatMap(Collection::stream);
   }
 }

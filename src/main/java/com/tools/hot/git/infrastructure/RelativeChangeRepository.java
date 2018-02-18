@@ -1,13 +1,16 @@
 package com.tools.hot.git.infrastructure;
 
-import com.tools.hot.git.parser.RelativeChange;
-import java.util.List;
+import com.tools.hot.git.parser.RelativeChanges;
 
-public class RelativeChangeRepository {
+public final class RelativeChangeRepository {
 
-  private List<RelativeChange> relativeChanges;
+  private RelativeChanges relativeChanges;
 
-  public void save(List<RelativeChange> relativeChanges) {
+  public void save(final RelativeChanges relativeChanges) {
     this.relativeChanges = relativeChanges;
+  }
+
+  public RelativeChanges findAll() {
+    return relativeChanges;
   }
 }
