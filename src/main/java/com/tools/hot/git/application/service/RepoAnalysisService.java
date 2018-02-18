@@ -4,8 +4,11 @@ import com.tools.hot.git.infrastructure.RelativeChangeRepository;
 import com.tools.hot.git.infrastructure.RepoFactory;
 import com.tools.hot.git.parser.CachedRelativeChanges;
 import com.tools.hot.git.parser.ConcurrentChangesPerFile;
+import com.tools.hot.git.parser.RelativeChange;
 import com.tools.hot.git.parser.RelativeChanges;
+import com.tools.hot.git.parser.RelativeChangesPerFile;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -33,5 +36,9 @@ public final class RepoAnalysisService {
   public Map<String, Long> getConcurrentChangesPerFile(final Duration concurrencyDuration) {
     final RelativeChanges relativeChanges = relativeChangeRepository.findAll();
     return new ConcurrentChangesPerFile(relativeChanges, concurrencyDuration).toMap();
+  }
+
+  public Map<String, List<RelativeChange>> getRelativeChangesPerFile() {
+    return new RelativeChangesPerFile(relativeChangeRepository.findAll()).toMap();
   }
 }

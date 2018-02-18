@@ -22,4 +22,12 @@ public final class RelativeChange {
   public String file() {
     return file;
   }
+
+  public Instant date() {
+    return date;
+  }
+
+  public Duration durationSinceLastChange() {
+    return durationSinceLastChange;
+  }
 }
