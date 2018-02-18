@@ -1,4 +1,4 @@
-package com.tools.hot.git;
+package com.tools.hot.git.parser;
 
 import java.time.Duration;
 import java.time.Instant;

@@ -9,6 +9,8 @@ import static java.util.stream.Collectors.toList;
 import com.tools.hot.git.parser.CommitTreeParserFactory;
 import com.tools.hot.git.parser.Commits;
 import com.tools.hot.git.parser.DiffWithParent;
+import com.tools.hot.git.parser.FileChanges;
+import com.tools.hot.git.parser.RelativeChange;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
@@ -16,18 +18,17 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Stream;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.jooq.lambda.Seq;
 
 public final class HotGit {
 
   public static void main(String[] args) throws IOException {
     final String sonarlint = "../sonarlint-intellij/.git";
-    final Repository repository = new FileRepositoryBuilder().setGitDir(new File(sonarlint))
+    final Repository repository = new FileRepositoryBuilder()
+        .setGitDir(new File(sonarlint))
         .readEnvironment()
         .findGitDir()
         .build();
@@ -40,7 +41,7 @@ public final class HotGit {
           .collect(groupingBy(Entry::getKey, mapping(Entry::getValue, toList())));
       final List<RelativeChange> relativeChanges = fileChangeDates.entrySet()
           .stream()
-          .flatMap(HotGit::fileChangeDatesToRelativeChanges)
+          .flatMap(entry -> new FileChanges(entry.getKey(), entry.getValue()).relativeChanges())
           .collect(toList());
       final Duration duration = Duration.ofDays(2);
       final Map<String, Long> hotFiles = relativeChanges.stream()
@@ -50,20 +51,6 @@ public final class HotGit {
           .filter(entry -> entry.getValue() > 0)
           .forEach(entry -> System.out.println(outputFormat(entry, duration)));
     }
-  }
-
-  private static Stream<? extends RelativeChange> fileChangeDatesToRelativeChanges(
-      Entry<String, List<Instant>> entry) {
-    final String file = entry.getKey();
-    final List<Instant> changeDates = entry.getValue();
-    changeDates.sort(Instant::compareTo);
-    return Seq.seq(changeDates).sliding(2).map(seq -> {
-      final Instant[] changeTimes = seq.toArray(Instant[]::new);
-      Instant first = changeTimes[0];
-      Instant second = changeTimes[1];
-      final Duration duration = Duration.between(first, second);
-      return new RelativeChange(file, second, duration);
-    });
   }
 
   private static String outputFormat(Entry<String, Long> entry, Duration duration) {
