@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
@@ -51,9 +50,9 @@ public class HotGitUI extends Application {
     final RepoFactory repoFactory = new RepoFactory();
     final RelativeChangeRepository relativeChangeRepository = new RelativeChangeRepository();
     this.repoAnalysisService = new RepoAnalysisService(repoFactory, relativeChangeRepository);
-    final NumberAxis numberAxis = new NumberAxis();
-    final CategoryAxis categoryAxis = new CategoryAxis();
-    chart = new LineChart(categoryAxis, numberAxis);
+    final NumberAxis xAxis = new NumberAxis();
+    final NumberAxis yAxis = new NumberAxis();
+    chart = new LineChart(yAxis, xAxis);
   }
 
   @Override
@@ -98,17 +97,14 @@ public class HotGitUI extends Application {
       final List<RelativeChange> relativeChanges = repoAnalysisService.getRelativeChangesPerFile()
           .get(fileName);
       final Series series = new Series();
-      relativeChanges.stream()
+      final Instant now = Instant.now();
+      final Data[] seriesData = relativeChanges.stream()
           .map(relativeChange -> {
-            final String x = relativeChange.date().toString();
+            final Long x = Duration.between(now, relativeChange.date()).toDays();
             final Long y = relativeChange.durationSinceLastChange().toDays();
             return new Data<>(x, y);
-          })
-          .forEach(series.getData()::add);
-      final Instant lastChangeDate = relativeChanges.get(relativeChanges.size() - 1).date();
-      final Instant now = Instant.now();
-      final Duration durationBetweenLastChangeAndNow = Duration.between(lastChangeDate, now);
-      series.getData().add(new Data<>(now.toString(), durationBetweenLastChangeAndNow.toDays()));
+          }).toArray(Data[]::new);
+      series.getData().addAll(seriesData);
       series.setName(fileName);
       chart.getData().clear();
       chart.getData().addAll(series);
