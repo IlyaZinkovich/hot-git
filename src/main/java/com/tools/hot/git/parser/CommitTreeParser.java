@@ -5,11 +5,11 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 
-public class CommitTreeParser extends CanonicalTreeParser {
+final class CommitTreeParser extends CanonicalTreeParser {
 
   private static final byte[] ROOT = {};
 
-  public CommitTreeParser(ObjectReader repositoryObjectReader, ObjectId commitTreeObjectId)
+  CommitTreeParser(final ObjectReader repositoryObjectReader, final ObjectId commitTreeObjectId)
       throws IOException {
     super(ROOT, repositoryObjectReader, commitTreeObjectId);
   }

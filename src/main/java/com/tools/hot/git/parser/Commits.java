@@ -6,7 +6,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-public class Commits {
+public final class Commits {
 
   private final Git git;
 

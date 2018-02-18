@@ -1,8 +1,8 @@
 package com.tools.hot.git.parser;
 
-public class DiffException extends RuntimeException {
+final class DiffException extends RuntimeException {
 
-  public DiffException(Throwable cause) {
+  DiffException(final Throwable cause) {
     super(cause);
   }
 }

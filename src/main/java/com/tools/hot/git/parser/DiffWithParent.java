@@ -10,7 +10,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-public class DiffWithParent {
+public final class DiffWithParent {
 
   private final RevCommit commit;
   private final CommitTreeParserFactory factory;

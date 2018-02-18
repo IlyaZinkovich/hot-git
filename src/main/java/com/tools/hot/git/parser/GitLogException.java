@@ -1,8 +1,8 @@
 package com.tools.hot.git.parser;
 
-public class GitLogException extends RuntimeException {
+final class GitLogException extends RuntimeException {
 
-  public GitLogException(Throwable cause) {
+  GitLogException(final Throwable cause) {
     super(cause);
   }
 }

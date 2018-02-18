@@ -6,9 +6,9 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 
-public class CommitTreeParserFactory {
+public final class CommitTreeParserFactory {
 
-  private ObjectReader objectReader;
+  private final ObjectReader objectReader;
 
   public CommitTreeParserFactory(final ObjectReader objectReader) {
     this.objectReader = objectReader;

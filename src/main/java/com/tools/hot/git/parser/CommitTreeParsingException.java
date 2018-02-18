@@ -1,8 +1,8 @@
 package com.tools.hot.git.parser;
 
-public class CommitTreeParsingException extends RuntimeException {
+final class CommitTreeParsingException extends RuntimeException {
 
-  public CommitTreeParsingException(Throwable cause) {
+  CommitTreeParsingException(final Throwable cause) {
     super(cause);
   }
 }

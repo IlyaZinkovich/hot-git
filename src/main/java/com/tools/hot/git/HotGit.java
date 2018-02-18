@@ -18,14 +18,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.jooq.lambda.Seq;
 
-public class HotGit {
+public final class HotGit {
 
   public static void main(String[] args) throws IOException {
     final String sonarlint = "../sonarlint-intellij/.git";
@@ -71,9 +69,5 @@ public class HotGit {
   private static String outputFormat(Entry<String, Long> entry, Duration duration) {
     return format("%s: %d changes within %d hours", entry.getKey(), entry.getValue(),
         duration.toHours());
-  }
-
-  private static Iterable<RevCommit> allCommits(Repository repository) throws GitAPIException {
-    return new Git(repository).log().call();
   }
 }
