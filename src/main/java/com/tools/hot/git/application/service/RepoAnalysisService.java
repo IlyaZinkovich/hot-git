@@ -2,6 +2,7 @@ package com.tools.hot.git.application.service;
 
 import com.tools.hot.git.infrastructure.RelativeChangeRepository;
 import com.tools.hot.git.infrastructure.RepoFactory;
+import com.tools.hot.git.parser.CachedRelativeChanges;
 import com.tools.hot.git.parser.ConcurrentChangesPerFile;
 import com.tools.hot.git.parser.RelativeChanges;
 import java.time.Duration;
@@ -25,7 +26,7 @@ public final class RepoAnalysisService {
     final Repository repository = repoFactory.get(pathToRepo);
     final Git git = new Git(repository);
     try (final ObjectReader objectReader = repository.newObjectReader()) {
-      relativeChangeRepository.save(new RelativeChanges(objectReader, git));
+      relativeChangeRepository.save(new CachedRelativeChanges(objectReader, git));
     }
   }
 
