@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 
@@ -28,8 +29,16 @@ public final class RepoAnalysisService {
   public void prepare(final String pathToRepo) {
     final Repository repository = repoFactory.get(pathToRepo);
     final Git git = new Git(repository);
+    tryToCheckoutLatestBranch(git);
     try (final ObjectReader objectReader = repository.newObjectReader()) {
       relativeChangeRepository.save(new CachedRelativeChanges(objectReader, git));
+    }
+  }
+
+  private void tryToCheckoutLatestBranch(Git git) {
+    try {
+      git.checkout().setName("latest").call();
+    } catch (GitAPIException ignored) {
     }
   }
 
