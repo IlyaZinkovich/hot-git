@@ -1,7 +1,18 @@
 group 'com.tools'
 version '1.0-SNAPSHOT'
 
+buildscript {
+    dependencies {
+        classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
 apply plugin: 'java'
+apply plugin: 'javafx-gradle-plugin'
 
 sourceCompatibility = 1.8
 
@@ -15,3 +26,9 @@ dependencies {
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.0.3'
     testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.0.3'
 }
+
+jfx {
+    mainClass = 'com.tools.hot.git.presentation.HotGitUI'
+    verbose = true
+}
+
