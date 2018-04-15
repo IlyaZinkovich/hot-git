@@ -62,6 +62,7 @@ public class HotGitUI extends Application {
     final Scene scene = new Scene(root);
     chart.setVisible(false);
     final TableView<ConcurrentChangesPerFileData> tableView = setupTableView();
+    tableView.setStyle("-fx-focus-color: transparent;-fx-faint-focus-color: transparent;");
     final MenuBar menuBar = setupMenuBar(stage, tableView);
     root.getChildren().addAll(menuBar, tableView, chart);
     stage.setScene(scene);
@@ -93,7 +94,7 @@ public class HotGitUI extends Application {
     final TableRow<ConcurrentChangesPerFileData> row = new TableRow<>();
     row.setOnMouseClicked(event -> {
       final ConcurrentChangesPerFileData data = row.getItem();
-      final String fileName = data.getFileName();
+      final String fileName = toFileNotation(data.getFileName());
       final List<RelativeChange> relativeChanges = repoAnalysisService.getRelativeChangesPerFile()
           .get(fileName);
       final Series series = new Series();
@@ -125,7 +126,9 @@ public class HotGitUI extends Application {
             repoAnalysisService.getConcurrentChangesPerFile(currentConcurrencyDuration);
         final List<ConcurrentChangesPerFileData> data = concurrentChangesPerFile.entrySet()
             .stream()
-            .map(entry -> new ConcurrentChangesPerFileData(entry.getKey(), entry.getValue()))
+            .filter(entry -> entry.getKey().endsWith(".java"))
+            .map(entry -> new ConcurrentChangesPerFileData(toPackageNotation(entry.getKey()),
+                entry.getValue()))
             .collect(Collectors.toList());
         tableView.setItems(observableArrayList(data));
         tableView.setVisible(true);
@@ -135,6 +138,15 @@ public class HotGitUI extends Application {
     fileMenu.getItems().addAll(chooseRepo);
     menuBar.getMenus().addAll(fileMenu);
     return menuBar;
+  }
+
+  private String toPackageNotation(final String path) {
+    return path.replace('/', '.');
+  }
+
+  private String toFileNotation(final String path) {
+    final int extensionIndex = path.lastIndexOf(".java");
+    return path.substring(0, extensionIndex).replace('.', '/').concat(".java");
   }
 
   private String repoMetadataPath(File file) {
